@@ -2,5 +2,7 @@ channels:
   - conda-forge
 dependencies:
   - jupyter
-  - black
-  - selenium
+  - selenium > 4.9
+  - pip
+  - pip:
+      - undetected-chromedriver

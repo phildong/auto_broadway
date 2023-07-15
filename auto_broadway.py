@@ -1,6 +1,6 @@
 # %% import and definition
+import undetected_chromedriver as uc
 import yaml
-from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.select import Select
@@ -8,19 +8,10 @@ from selenium.webdriver.support.select import Select
 USER_FILE = "users.yml"
 URL = "https://lottery.broadwaydirect.com/show/mj-ny/"
 
-
-def scroll_element_into_view(driver, element):
-    """Scroll element into view"""
-    y = element.location["y"]
-    driver.execute_script("window.scrollTo(0, {0})".format(y))
-
-
 # %% start webdriver
 with open(USER_FILE) as uf:
     user_dict = yaml.safe_load(uf)
-# driver = webdriver.Chrome(executable_path="./chromedriver")
-driver = webdriver.Firefox(executable_path="./drivers/geckodriver")
-driver.maximize_window()
+driver = uc.Chrome(headless=False, use_subprocess=False)
 for cur_user, info in user_dict.items():
     driver.get(URL)
     try:
@@ -41,5 +32,5 @@ for cur_user, info in user_dict.items():
     driver.find_element(By.NAME, "dlslot_zip").send_keys(info["zip"])
     country = driver.find_element(By.NAME, "dlslot_country")
     Select(country).select_by_visible_text("USA")
-    chk = driver.find_element(By.NAME, "dlslot_agree")
-    # driver.find_element(By.CSS_SELECTOR, '.enter-now-button').click()
+    driver.execute_script("document.getElementById('dlslot_agree').click()")
+    driver.find_element(By.CSS_SELECTOR, ".enter-now-button").click()
