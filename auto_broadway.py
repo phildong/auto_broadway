@@ -1,4 +1,9 @@
 # %% import and definition
+import logging
+import os
+import random
+import time
+
 import undetected_chromedriver as uc
 import yaml
 from selenium.common.exceptions import NoSuchElementException
@@ -7,17 +12,33 @@ from selenium.webdriver.support.select import Select
 
 USER_FILE = "users.yml"
 URL = "https://lottery.broadwaydirect.com/show/mj-ny/"
+LOG_PATH = "./"
+SLEEP = True
+LOG_FORMAT = "%(asctime)s: %(levelname)8s - %(message)s"
 
-# %% start webdriver
+if SLEEP:
+    time.sleep(random.random() * 5 * 60 * 60)  # sleep 0-5 hrs
+
+# %% setup
+logging.basicConfig(
+    filename=os.path.join(LOG_PATH, "{}.log".format(int(time.time()))),
+    format=LOG_FORMAT,
+    level=logging.INFO,
+)
 with open(USER_FILE) as uf:
     user_dict = yaml.safe_load(uf)
-driver = uc.Chrome(headless=False, use_subprocess=False)
+
+# %% start webdriver and enter lottery
+driver = uc.Chrome(headless=True, use_subprocess=False)
 for cur_user, info in user_dict.items():
+    if SLEEP:
+        time.sleep(random.random() * 10)  # sleep 0-10 sec
     driver.get(URL)
     try:
         lottery_button = driver.find_element(By.CLASS_NAME, "enter-lottery-link")
     except NoSuchElementException:
-        raise NoSuchElementException("No lottery opening at now")
+        logging.error("No lottery opening at now, closing.")
+        break
     lottery_button.click()
     iframe = driver.find_element(By.CLASS_NAME, "fancybox-iframe")
     driver.switch_to.frame(iframe)
@@ -34,3 +55,12 @@ for cur_user, info in user_dict.items():
     Select(country).select_by_visible_text("USA")
     driver.execute_script("document.getElementById('dlslot_agree').click()")
     driver.find_element(By.CSS_SELECTOR, ".enter-now-button").click()
+    result = driver.find_element(By.CLASS_NAME, "entry-header")
+    # reason = driver.find_element(By.CLASS_NAME, "entry-content").find_element(
+    #     By.TAG_NAME, "h3"
+    # )
+    if result.text == "SUCCESS":
+        logging.info("Lottery entered for {}".format(cur_user))
+    else:
+        logging.error("Unsucessful lottery for {}: {}".format(cur_user, result.text))
+driver.close()
