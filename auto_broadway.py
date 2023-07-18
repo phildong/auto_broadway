@@ -12,16 +12,19 @@ from selenium.webdriver.support.select import Select
 
 USER_FILE = "users.yml"
 URL = "https://lottery.broadwaydirect.com/show/mj-ny/"
-LOG_PATH = "./"
-SLEEP = True
+LOG_PATH = "./logs"
+LOG_NAME = "production"
+SLEEP = False
 LOG_FORMAT = "%(asctime)s: %(levelname)8s - %(message)s"
 
+# %% setup
 if SLEEP:
     time.sleep(random.random() * 5 * 60 * 60)  # sleep 0-5 hrs
-
-# %% setup
+os.makedirs(LOG_PATH, exist_ok=True)
 logging.basicConfig(
-    filename=os.path.join(LOG_PATH, "{}.log".format(int(time.time()))),
+    filename=os.path.join(
+        LOG_PATH, "{}.log".format(int(time.time()) if LOG_NAME is None else LOG_NAME)
+    ),
     format=LOG_FORMAT,
     level=logging.INFO,
 )
