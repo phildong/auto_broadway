@@ -14,7 +14,7 @@ USER_FILE = "users.yml"
 URL = "https://lottery.broadwaydirect.com/show/mj-ny/"
 LOG_PATH = "logs"
 LOG_NAME = "production"
-SLEEP = False
+SLEEP = True
 LOG_FORMAT = "%(asctime)s: %(levelname)8s - %(message)s"
 
 # %% setup
