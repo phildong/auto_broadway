@@ -1,4 +1,4 @@
-phild:
+bendog:
   first_name: Phil
   last_name: Dong
   email: dz.bendog@gmail.com
@@ -6,4 +6,31 @@ phild:
     mm: 03
     dd: 01
     yy: 1992
+  zip: 10029
+phild:
+  first_name: Zhe
+  last_name: Dong
+  email: phil.zhe.dong@gmail.com
+  dob:
+    mm: 03
+    dd: 01
+    yy: 1992
+  zip: 10029
+susie-sinai:
+  first_name: Susie
+  last_name: Feng
+  email: susie.feng@icahn.mssm.edu
+  dob:
+    mm: 11
+    dd: 11
+    yy: 1995
+  zip: 10029
+susie-personal:
+  first_name: Yu
+  last_name: Feng
+  email: susieyufeng@gmail.com
+  dob:
+    mm: 11
+    dd: 11
+    yy: 1995
   zip: 10029
