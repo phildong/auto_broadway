@@ -6,15 +6,15 @@ import time
 
 import undetected_chromedriver as uc
 import yaml
-from selenium.common.exceptions import (
-    ElementNotInteractableException,
-    NoSuchElementException,
-)
+from selenium.common.exceptions import ElementNotInteractableException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.select import Select
 
 USER_FILE = "users.yml"
-URL = "https://lottery.broadwaydirect.com/show/mj-ny/"
+URLS = [
+    "https://lottery.broadwaydirect.com/show/six-ny/",
+    "https://lottery.broadwaydirect.com/show/mj-ny/",
+]
 LOG_PATH = "logs"
 LOG_NAME = "production"
 SLEEP = True
@@ -39,47 +39,58 @@ with open(USER_FILE) as uf:
 
 # %% start webdriver and enter lottery
 driver = uc.Chrome(headless=True, use_subprocess=False)
-for cur_user, info in user_dict.items():
-    if SLEEP:
-        time.sleep(random.random() * 10)  # sleep 0-10 sec
-    driver.get(URL)
-    try:
+for url in URLS:
+    showname = list(filter(lambda s: bool(s), url.split("/")))[-1]
+    for cur_user, info in user_dict.items():
+        if SLEEP:
+            time.sleep(random.random() * 10)  # sleep 0-10 sec
+        driver.get(url)
         lottery_buttons = driver.find_elements(By.CLASS_NAME, "enter-lottery-link")
-    except NoSuchElementException:
-        logging.error("No lottery opening at now, closing.")
-        break
-    for ilottery in range(len(lottery_buttons)):
-        driver.get(URL)
-        lottery_button = driver.find_elements(By.CLASS_NAME, "enter-lottery-link")[
-            ilottery
-        ]
-        try:
-            lottery_button.click()
-        except ElementNotInteractableException:
-            continue
-        iframe = driver.find_element(By.CLASS_NAME, "fancybox-iframe")
-        driver.switch_to.frame(iframe)
-        driver.find_element(By.NAME, "dlslot_name_first").send_keys(info["first_name"])
-        driver.find_element(By.NAME, "dlslot_name_last").send_keys(info["last_name"])
-        qty = driver.find_element(By.NAME, "dlslot_ticket_qty")
-        Select(qty).select_by_visible_text("2")
-        driver.find_element(By.NAME, "dlslot_email").send_keys(info["email"])
-        driver.find_element(By.NAME, "dlslot_dob_year").send_keys(info["dob"]["yy"])
-        driver.find_element(By.NAME, "dlslot_dob_month").send_keys(info["dob"]["mm"])
-        driver.find_element(By.NAME, "dlslot_dob_day").send_keys(info["dob"]["dd"])
-        driver.find_element(By.NAME, "dlslot_zip").send_keys(info["zip"])
-        country = driver.find_element(By.NAME, "dlslot_country")
-        Select(country).select_by_visible_text("USA")
-        driver.execute_script("document.getElementById('dlslot_agree').click()")
-        driver.find_element(By.CSS_SELECTOR, ".enter-now-button").click()
-        result = driver.find_element(By.CLASS_NAME, "entry-header")
-        # reason = driver.find_element(By.CLASS_NAME, "entry-content").find_element(
-        #     By.TAG_NAME, "h3"
-        # )
-        if result.text == "SUCCESS":
-            logging.info("Lottery entered for {}".format(cur_user))
-        else:
-            logging.error(
-                "Unsucessful lottery for {}: {}".format(cur_user, result.text)
+        if not lottery_buttons:
+            logging.error("No lottery opening for {}.".format(showname))
+            break
+        for ilottery in range(len(lottery_buttons)):
+            driver.get(url)
+            lottery_button = driver.find_elements(By.CLASS_NAME, "enter-lottery-link")[
+                ilottery
+            ]
+            try:
+                lottery_button.click()
+            except ElementNotInteractableException:
+                continue
+            iframe = driver.find_element(By.CLASS_NAME, "fancybox-iframe")
+            driver.switch_to.frame(iframe)
+            driver.find_element(By.NAME, "dlslot_name_first").send_keys(
+                info["first_name"]
             )
+            driver.find_element(By.NAME, "dlslot_name_last").send_keys(
+                info["last_name"]
+            )
+            qty = driver.find_element(By.NAME, "dlslot_ticket_qty")
+            Select(qty).select_by_visible_text("2")
+            driver.find_element(By.NAME, "dlslot_email").send_keys(info["email"])
+            driver.find_element(By.NAME, "dlslot_dob_year").send_keys(info["dob"]["yy"])
+            driver.find_element(By.NAME, "dlslot_dob_month").send_keys(
+                info["dob"]["mm"]
+            )
+            driver.find_element(By.NAME, "dlslot_dob_day").send_keys(info["dob"]["dd"])
+            driver.find_element(By.NAME, "dlslot_zip").send_keys(info["zip"])
+            country = driver.find_element(By.NAME, "dlslot_country")
+            Select(country).select_by_visible_text("USA")
+            driver.execute_script("document.getElementById('dlslot_agree').click()")
+            driver.find_element(By.CSS_SELECTOR, ".enter-now-button").click()
+            result = driver.find_element(By.CLASS_NAME, "entry-header")
+            # reason = driver.find_element(By.CLASS_NAME, "entry-content").find_element(
+            #     By.TAG_NAME, "h3"
+            # )
+            if result.text == "SUCCESS":
+                logging.info(
+                    "Lottery entered for {} with {}".format(showname, cur_user)
+                )
+            else:
+                logging.error(
+                    "Unsucessful lottery for {} with {}: {}".format(
+                        showname, cur_user, result.text
+                    )
+                )
 driver.close()
