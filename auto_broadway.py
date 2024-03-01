@@ -16,7 +16,8 @@ USER_FILE = "users.yml"
 UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
 URLS = [
     "https://lottery.broadwaydirect.com/show/six-ny/",
-    "https://lottery.broadwaydirect.com/show/mj-ny/",
+    "https://lottery.broadwaydirect.com/show/sweeney-todd-ny/",
+    "https://lottery.broadwaydirect.com/show/the-lion-king/",
 ]
 LOG_PATH = "logs"
 LOG_NAME = "production"
