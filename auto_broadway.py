@@ -6,11 +6,14 @@ import time
 
 import undetected_chromedriver as uc
 import yaml
-from selenium.common.exceptions import ElementNotInteractableException
+from selenium.common.exceptions import ElementNotInteractableException, TimeoutException
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.select import Select
+from selenium.webdriver.support.wait import WebDriverWait
 
 USER_FILE = "users.yml"
+UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
 URLS = [
     "https://lottery.broadwaydirect.com/show/six-ny/",
     "https://lottery.broadwaydirect.com/show/mj-ny/",
@@ -38,13 +41,25 @@ with open(USER_FILE) as uf:
     user_dict = yaml.safe_load(uf)
 
 # %% start webdriver and enter lottery
-driver = uc.Chrome(headless=True, use_subprocess=False)
+opts = uc.ChromeOptions()
+opts.add_argument("--headless=new")
+opts.add_argument("--user-agent={}".format(UA))
+driver = uc.Chrome(options=opts, use_subprocess=False)
 for url in URLS:
     showname = list(filter(lambda s: bool(s), url.split("/")))[-1]
     for cur_user, info in user_dict.items():
         if SLEEP:
             time.sleep(random.random() * 10)  # sleep 0-10 sec
         driver.get(url)
+        driver.refresh()
+        try:
+            WebDriverWait(driver, 30).until(
+                EC.presence_of_element_located((By.CLASS_NAME, "lottery-notice"))
+            )
+        except TimeoutException:
+            driver.get_screenshot_as_file("./debug.png")
+            logging.error("Unable to load lottery page for {}".format(showname))
+            break
         lottery_buttons = driver.find_elements(By.CLASS_NAME, "enter-lottery-link")
         if not lottery_buttons:
             logging.error("No lottery opening for {}.".format(showname))
